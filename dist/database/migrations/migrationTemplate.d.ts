@@ -1,1 +1,0 @@
-export declare const migrationTemplate = "\nimport payload, { Payload } from 'payload';\n\nexport async function up(payload: Payload): Promise<void> {\n  // Migration code\n};\n\nexport async function down(payload: Payload): Promise<void> {\n  // Migration code\n};\n";
