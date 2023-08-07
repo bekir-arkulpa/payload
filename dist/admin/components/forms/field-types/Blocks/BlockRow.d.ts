@@ -1,0 +1,20 @@
+import React from 'react';
+import { Props } from './types';
+import type { UseDraggableSortableReturn } from '../../../elements/DraggableSortable/useDraggableSortable/types';
+import type { Row } from '../../Form/types';
+import type { Block } from '../../../../../fields/config/types';
+type BlockFieldProps = UseDraggableSortableReturn & Pick<Props, 'path' | 'labels' | 'blocks' | 'fieldTypes' | 'indexPath' | 'permissions'> & {
+    addRow: (rowIndex: number, blockType: string) => void;
+    duplicateRow: (rowIndex: number) => void;
+    removeRow: (rowIndex: number) => void;
+    moveRow: (fromIndex: number, toIndex: number) => void;
+    setCollapse: (id: string, collapsed: boolean) => void;
+    rowIndex: number;
+    row: Row;
+    readOnly: boolean;
+    rowCount: number;
+    blockToRender: Block;
+    hasMaxRows?: boolean;
+};
+export declare const BlockRow: React.FC<BlockFieldProps>;
+export {};

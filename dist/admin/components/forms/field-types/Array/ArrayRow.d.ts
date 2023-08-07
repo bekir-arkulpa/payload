@@ -1,0 +1,21 @@
+import React from 'react';
+import { Props } from './types';
+import type { UseDraggableSortableReturn } from '../../../elements/DraggableSortable/useDraggableSortable/types';
+import type { Row } from '../../Form/types';
+import type { RowLabel as RowLabelType } from '../../RowLabel/types';
+import './index.scss';
+type ArrayRowProps = UseDraggableSortableReturn & Pick<Props, 'fields' | 'path' | 'indexPath' | 'fieldTypes' | 'permissions' | 'labels'> & {
+    addRow: (rowIndex: number) => void;
+    duplicateRow: (rowIndex: number) => void;
+    removeRow: (rowIndex: number) => void;
+    moveRow: (fromIndex: number, toIndex: number) => void;
+    setCollapse: (rowID: string, collapsed: boolean) => void;
+    rowCount: number;
+    rowIndex: number;
+    row: Row;
+    CustomRowLabel?: RowLabelType;
+    readOnly?: boolean;
+    hasMaxRows?: boolean;
+};
+export declare const ArrayRow: React.FC<ArrayRowProps>;
+export {};
