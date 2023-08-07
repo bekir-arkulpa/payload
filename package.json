@@ -1,5 +1,5 @@
 {
-  "name": "payload",
+  "name": "@bekir-arkulpa/payload",
   "version": "1.12.0",
   "description": "Node, React and MongoDB Headless CMS and Application Framework",
   "license": "MIT",
@@ -21,7 +21,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/payloadcms/payload.git"
+    "url": "https://github.com/bekir-arkulpa/payload.git"
   },
   "homepage": "https://payloadcms.com",
   "main": "./dist/index.js",
@@ -48,7 +48,6 @@
     "test:components": "cross-env jest --config=jest.components.config.js",
     "clean:cache": "rimraf node_modules/.cache",
     "clean": "rimraf dist",
-    "postinstall": "yarn run build",
     "release:patch": "release-it patch",
     "release:minor": "release-it minor",
     "release:major": "release-it major",
@@ -298,6 +297,6 @@
     "!jest.components.config.js"
   ],
   "publishConfig": {
-    "registry": "https://registry.npmjs.org/"
+    "registry": "https://npm.pkg.github.com/bekir-arkulpa"
   }
 }
