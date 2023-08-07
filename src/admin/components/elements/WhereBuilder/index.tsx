@@ -22,10 +22,12 @@ import "./index.scss";
 
 const baseClass = "where-builder";
 
-const mapGroupChildren = (field, i18n, childField) => {
+const mapGroupChildren = (field, i18n, childField, innerParent?) => {
   return {
     label: getTranslation(childField.label || childField.name, i18n),
-    value: `${field.name}.${childField.name}`,
+    value: `${field.name}${innerParent ? `.${innerParent.name}` : ""}.${
+      childField.name
+    }`,
     ...fieldTypes[childField.type],
     operators: fieldTypes[childField.type]?.operators?.map((operator) => ({
       ...operator,
@@ -53,7 +55,14 @@ const reduceFields = (fields, i18n) =>
           if (hasSubfields) {
             const secondFlattened = flattenTopLevelFields(f.fields);
             secondFlattened.forEach((s) => {
-              deeperChildren.push(mapGroupChildren(field, i18n, s));
+              deeperChildren.push(
+                mapGroupChildren(
+                  field,
+                  i18n,
+                  s,
+                  f.type === "array" ? f : undefined
+                )
+              );
             });
           }
           if (!hasSubfields) {
