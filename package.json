@@ -49,6 +49,7 @@
     "clean:cache": "rimraf node_modules/.cache",
     "clean": "rimraf dist",
     "prepare": "yarn run build",
+    "prepack": "yarn run build",
     "release:patch": "release-it patch",
     "release:minor": "release-it minor",
     "release:major": "release-it major",
