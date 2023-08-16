@@ -1,27 +1,31 @@
-import React, { useReducer, useState, useCallback, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useConfig } from '../../../../utilities/Config';
-import { Props, ValueWithRelation, GetResults } from './types';
-import optionsReducer from './optionsReducer';
-import useDebounce from '../../../../../hooks/useDebounce';
-import ReactSelect from '../../../ReactSelect';
-import { Option } from '../../../ReactSelect/types';
-import { PaginatedDocs } from '../../../../../../mongoose/types';
+import React, { useCallback, useEffect, useReducer, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { PaginatedDocs } from "../../../../../../mongoose/types";
+import useDebounce from "../../../../../hooks/useDebounce";
+import { useConfig } from "../../../../utilities/Config";
+import ReactSelect from "../../../ReactSelect";
+import { Option } from "../../../ReactSelect/types";
+import optionsReducer from "./optionsReducer";
+import { GetResults, Props, ValueWithRelation } from "./types";
 
-import './index.scss';
+import "./index.scss";
 
-const baseClass = 'condition-value-relationship';
+const baseClass = "condition-value-relationship";
 
-const maxResultsPerRequest = 10;
+const maxResultsPerRequest = 9999999;
 
 const RelationshipField: React.FC<Props> = (props) => {
-  const { onChange, value, relationTo, hasMany, admin: { isSortable } = {} } = props;
+  const {
+    onChange,
+    value,
+    relationTo,
+    hasMany,
+    admin: { isSortable } = {},
+  } = props;
 
   const {
     serverURL,
-    routes: {
-      api,
-    },
+    routes: { api },
     collections,
   } = useConfig();
 
@@ -29,70 +33,97 @@ const RelationshipField: React.FC<Props> = (props) => {
   const [options, dispatchOptions] = useReducer(optionsReducer, []);
   const [lastFullyLoadedRelation, setLastFullyLoadedRelation] = useState(-1);
   const [lastLoadedPage, setLastLoadedPage] = useState(1);
-  const [search, setSearch] = useState('');
-  const [errorLoading, setErrorLoading] = useState('');
+  const [search, setSearch] = useState("");
+  const [errorLoading, setErrorLoading] = useState("");
   const [hasLoadedFirstOptions, setHasLoadedFirstOptions] = useState(false);
   const debouncedSearch = useDebounce(search, 300);
-  const { t, i18n } = useTranslation('general');
+  const { t, i18n } = useTranslation("general");
 
-  const addOptions = useCallback((data, relation) => {
-    const collection = collections.find((coll) => coll.slug === relation);
-    dispatchOptions({ type: 'ADD', data, relation, hasMultipleRelations, collection, i18n });
-  }, [collections, hasMultipleRelations, i18n]);
+  const addOptions = useCallback(
+    (data, relation) => {
+      const collection = collections.find((coll) => coll.slug === relation);
+      dispatchOptions({
+        type: "ADD",
+        data,
+        relation,
+        hasMultipleRelations,
+        collection,
+        i18n,
+      });
+    },
+    [collections, hasMultipleRelations, i18n]
+  );
 
-  const getResults = useCallback<GetResults>(async ({
-    lastFullyLoadedRelation: lastFullyLoadedRelationArg,
-    lastLoadedPage: lastLoadedPageArg,
-    search: searchArg,
-  }) => {
-    let lastLoadedPageToUse = typeof lastLoadedPageArg !== 'undefined' ? lastLoadedPageArg : 1;
-    const lastFullyLoadedRelationToUse = typeof lastFullyLoadedRelationArg !== 'undefined' ? lastFullyLoadedRelationArg : -1;
+  const getResults = useCallback<GetResults>(
+    async ({
+      lastFullyLoadedRelation: lastFullyLoadedRelationArg,
+      lastLoadedPage: lastLoadedPageArg,
+      search: searchArg,
+    }) => {
+      let lastLoadedPageToUse =
+        typeof lastLoadedPageArg !== "undefined" ? lastLoadedPageArg : 1;
+      const lastFullyLoadedRelationToUse =
+        typeof lastFullyLoadedRelationArg !== "undefined"
+          ? lastFullyLoadedRelationArg
+          : -1;
 
-    const relations = Array.isArray(relationTo) ? relationTo : [relationTo];
-    const relationsToFetch = lastFullyLoadedRelationToUse === -1 ? relations : relations.slice(lastFullyLoadedRelationToUse + 1);
+      const relations = Array.isArray(relationTo) ? relationTo : [relationTo];
+      const relationsToFetch =
+        lastFullyLoadedRelationToUse === -1
+          ? relations
+          : relations.slice(lastFullyLoadedRelationToUse + 1);
 
-    let resultsFetched = 0;
+      let resultsFetched = 0;
 
-    if (!errorLoading) {
-      relationsToFetch.reduce(async (priorRelation, relation) => {
-        await priorRelation;
+      if (!errorLoading) {
+        relationsToFetch.reduce(async (priorRelation, relation) => {
+          await priorRelation;
 
-        if (resultsFetched < 10) {
-          const collection = collections.find((coll) => coll.slug === relation);
-          const fieldToSearch = collection?.admin?.useAsTitle || 'id';
-          const searchParam = searchArg ? `&where[${fieldToSearch}][like]=${searchArg}` : '';
+          if (resultsFetched < 10) {
+            const collection = collections.find(
+              (coll) => coll.slug === relation
+            );
+            const fieldToSearch = collection?.admin?.useAsTitle || "id";
+            const searchParam = searchArg
+              ? `&where[${fieldToSearch}][like]=${searchArg}`
+              : "";
 
-          const response = await fetch(`${serverURL}${api}/${relation}?limit=${maxResultsPerRequest}&page=${lastLoadedPageToUse}&depth=0${searchParam}`, {
-            credentials: 'include',
-            headers: {
-              'Accept-Language': i18n.language,
-            },
-          });
+            const response = await fetch(
+              `${serverURL}${api}/${relation}?limit=${maxResultsPerRequest}&page=${lastLoadedPageToUse}&depth=0${searchParam}`,
+              {
+                credentials: "include",
+                headers: {
+                  "Accept-Language": i18n.language,
+                },
+              }
+            );
 
-          if (response.ok) {
-            const data: PaginatedDocs = await response.json();
-            if (data.docs.length > 0) {
-              resultsFetched += data.docs.length;
-              addOptions(data, relation);
-              setLastLoadedPage(data.page);
+            if (response.ok) {
+              const data: PaginatedDocs = await response.json();
+              if (data.docs.length > 0) {
+                resultsFetched += data.docs.length;
+                addOptions(data, relation);
+                setLastLoadedPage(data.page);
 
-              if (!data.nextPage) {
-                setLastFullyLoadedRelation(relations.indexOf(relation));
+                if (!data.nextPage) {
+                  setLastFullyLoadedRelation(relations.indexOf(relation));
 
-                // If there are more relations to search, need to reset lastLoadedPage to 1
-                // both locally within function and state
-                if (relations.indexOf(relation) + 1 < relations.length) {
-                  lastLoadedPageToUse = 1;
+                  // If there are more relations to search, need to reset lastLoadedPage to 1
+                  // both locally within function and state
+                  if (relations.indexOf(relation) + 1 < relations.length) {
+                    lastLoadedPageToUse = 1;
+                  }
                 }
               }
+            } else {
+              setErrorLoading(t("errors:unspecific"));
             }
-          } else {
-            setErrorLoading(t('errors:unspecific'));
           }
-        }
-      }, Promise.resolve());
-    }
-  }, [i18n, relationTo, errorLoading, collections, serverURL, api, addOptions, t]);
+        }, Promise.resolve());
+      }
+    },
+    [i18n, relationTo, errorLoading, collections, serverURL, api, addOptions, t]
+  );
 
   const findOptionsByValue = useCallback((): Option | Option[] => {
     if (value) {
@@ -151,29 +182,38 @@ const RelationshipField: React.FC<Props> = (props) => {
     return undefined;
   }, [hasMany, hasMultipleRelations, value, options]);
 
-  const handleInputChange = useCallback((newSearch) => {
-    if (search !== newSearch) {
-      setSearch(newSearch);
-    }
-  }, [search]);
-
-  const addOptionByID = useCallback(async (id, relation) => {
-    if (!errorLoading && id !== 'null') {
-      const response = await fetch(`${serverURL}${api}/${relation}/${id}?depth=0`, {
-        credentials: 'include',
-        headers: {
-          'Accept-Language': i18n.language,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        addOptions({ docs: [data] }, relation);
-      } else {
-        console.error(t('error:loadingDocument', { id }));
+  const handleInputChange = useCallback(
+    (newSearch) => {
+      if (search !== newSearch) {
+        setSearch(newSearch);
       }
-    }
-  }, [i18n, addOptions, api, errorLoading, serverURL, t]);
+    },
+    [search]
+  );
+
+  const addOptionByID = useCallback(
+    async (id, relation) => {
+      if (!errorLoading && id !== "null") {
+        const response = await fetch(
+          `${serverURL}${api}/${relation}/${id}?depth=0`,
+          {
+            credentials: "include",
+            headers: {
+              "Accept-Language": i18n.language,
+            },
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          addOptions({ docs: [data] }, relation);
+        } else {
+          console.error(t("error:loadingDocument", { id }));
+        }
+      }
+    },
+    [i18n, addOptions, api, errorLoading, serverURL, t]
+  );
 
   // ///////////////////////////
   // Get results when search input changes
@@ -181,7 +221,7 @@ const RelationshipField: React.FC<Props> = (props) => {
 
   useEffect(() => {
     dispatchOptions({
-      type: 'CLEAR',
+      type: "CLEAR",
       required: true,
       i18n,
     });
@@ -201,7 +241,7 @@ const RelationshipField: React.FC<Props> = (props) => {
       if (hasMany) {
         const matchedOptions = findOptionsByValue();
 
-        (matchedOptions as Option[] || []).forEach((option, i) => {
+        ((matchedOptions as Option[]) || []).forEach((option, i) => {
           if (!option) {
             if (hasMultipleRelations) {
               addOptionByID(value[i].value, value[i].relationTo);
@@ -216,20 +256,29 @@ const RelationshipField: React.FC<Props> = (props) => {
         if (!matchedOption) {
           if (hasMultipleRelations) {
             const valueWithRelation = value as ValueWithRelation;
-            addOptionByID(valueWithRelation.value, valueWithRelation.relationTo);
+            addOptionByID(
+              valueWithRelation.value,
+              valueWithRelation.relationTo
+            );
           } else {
             addOptionByID(value, relationTo);
           }
         }
       }
     }
-  }, [addOptionByID, findOptionsByValue, hasMany, hasMultipleRelations, relationTo, value, hasLoadedFirstOptions]);
+  }, [
+    addOptionByID,
+    findOptionsByValue,
+    hasMany,
+    hasMultipleRelations,
+    relationTo,
+    value,
+    hasLoadedFirstOptions,
+  ]);
 
-  const classes = [
-    'field-type',
-    baseClass,
-    errorLoading && 'error-loading',
-  ].filter(Boolean).join(' ');
+  const classes = ["field-type", baseClass, errorLoading && "error-loading"]
+    .filter(Boolean)
+    .join(" ");
 
   const valueToRender = (findOptionsByValue() || value) as Option;
 
@@ -237,20 +286,24 @@ const RelationshipField: React.FC<Props> = (props) => {
     <div className={classes}>
       {!errorLoading && (
         <ReactSelect
-          placeholder={t('selectValue')}
+          placeholder={t("selectValue")}
           onInputChange={handleInputChange}
           onChange={(selected) => {
             if (hasMany) {
-              onChange(selected ? selected.map((option) => {
-                if (hasMultipleRelations) {
-                  return {
-                    relationTo: option.relationTo,
-                    value: option.value,
-                  };
-                }
+              onChange(
+                selected
+                  ? selected.map((option) => {
+                      if (hasMultipleRelations) {
+                        return {
+                          relationTo: option.relationTo,
+                          value: option.value,
+                        };
+                      }
 
-                return option.value;
-              }) : null);
+                      return option.value;
+                    })
+                  : null
+              );
             } else if (hasMultipleRelations) {
               onChange({
                 relationTo: selected.relationTo,
@@ -261,7 +314,10 @@ const RelationshipField: React.FC<Props> = (props) => {
             }
           }}
           onMenuScrollToBottom={() => {
-            getResults({ lastFullyLoadedRelation, lastLoadedPage: lastLoadedPage + 1 });
+            getResults({
+              lastFullyLoadedRelation,
+              lastLoadedPage: lastLoadedPage + 1,
+            });
           }}
           value={valueToRender}
           options={options}
@@ -270,9 +326,7 @@ const RelationshipField: React.FC<Props> = (props) => {
         />
       )}
       {errorLoading && (
-        <div className={`${baseClass}__error-loading`}>
-          {errorLoading}
-        </div>
+        <div className={`${baseClass}__error-loading`}>{errorLoading}</div>
       )}
     </div>
   );

@@ -64,8 +64,7 @@ const reduceFields = (fields, i18n) =>
                 )
               );
             });
-          }
-          if (!hasSubfields) {
+          } else {
             mappedChildren.push(mapGroupChildren(field, i18n, f));
           }
         });
